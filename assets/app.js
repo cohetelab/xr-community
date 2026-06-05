@@ -36,22 +36,24 @@ const postList = document.querySelector("[data-postlist]");
 function renderPosts(key) {
   const items = POSTS[key] || [];
   postList.innerHTML = items.map(p => `
-    <li class="post">
-      <div class="post-thumb" style="--t1:${p.t1};--t2:${p.t2}">${p.icon}</div>
-      <div class="post-main">
-        <span class="post-cat">${p.cat}</span>
-        <h4 class="post-title">${p.title}</h4>
-        <p class="post-excerpt">${p.excerpt}</p>
-        <div class="post-meta">
-          <span class="post-author"><span class="avatar">${p.author[0]}</span>${p.author}</span>
-          <span>${p.time}</span>
-          <span class="post-stats">
-            <span>👁 ${p.view.toLocaleString()}</span>
-            <span>♥ ${p.like}</span>
-            <span>💬 ${p.comment}</span>
-          </span>
+    <li>
+      <a class="post" href="post.html">
+        <div class="post-thumb" style="--t1:${p.t1};--t2:${p.t2}">${p.icon}</div>
+        <div class="post-main">
+          <span class="post-cat">${p.cat}</span>
+          <h4 class="post-title">${p.title}</h4>
+          <p class="post-excerpt">${p.excerpt}</p>
+          <div class="post-meta">
+            <span class="post-author"><span class="avatar">${p.author[0]}</span>${p.author}</span>
+            <span>${p.time}</span>
+            <span class="post-stats">
+              <span>👁 ${p.view.toLocaleString()}</span>
+              <span>♥ ${p.like}</span>
+              <span>💬 ${p.comment}</span>
+            </span>
+          </div>
         </div>
-      </div>
+      </a>
     </li>`).join("");
 }
 renderPosts("최신");
