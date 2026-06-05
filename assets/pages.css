@@ -162,3 +162,63 @@
   .article-title { font-size: 21px; }
   .comment.reply { margin-left: 24px; }
 }
+
+/* ============ Write (글쓰기) ============ */
+.write-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px 28px; }
+.write-card h1 { font-size: 22px; margin: 0 0 20px; letter-spacing: -.3px; }
+.form-row { margin-bottom: 16px; }
+.form-row > label { display: block; font-size: 13px; font-weight: 700; color: #4a5263; margin-bottom: 7px; }
+.field {
+  width: 100%; height: 44px; border: 1px solid var(--line); border-radius: 10px; padding: 0 14px;
+  font: inherit; font-size: 14px; outline: none; background: #fff; color: var(--ink);
+}
+.field:focus, .area:focus { border-color: var(--blue); }
+.field-group { display: flex; gap: 10px; flex-wrap: wrap; }
+.field-group .field { flex: 1; min-width: 160px; }
+.area {
+  width: 100%; min-height: 320px; resize: vertical; border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px; font: inherit; font-size: 14.5px; line-height: 1.7; outline: none;
+}
+.editor-toolbar {
+  display: flex; gap: 4px; flex-wrap: wrap; border: 1px solid var(--line); border-bottom: 0;
+  border-radius: 10px 10px 0 0; padding: 8px 10px; background: #fafbfd;
+}
+.editor-toolbar + .area { border-radius: 0 0 10px 10px; min-height: 300px; }
+.tool { width: 34px; height: 32px; border: 0; background: none; border-radius: 7px; cursor: pointer; font-size: 15px; color: #4a5263; }
+.tool:hover { background: #eef0f6; }
+.tool .b { font-weight: 800; } .tool .i { font-style: italic; } .tool .u { text-decoration: underline; }
+.field-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.char-count { float: right; }
+.dropzone {
+  border: 1.5px dashed #cdd3e6; border-radius: 12px; padding: 26px; text-align: center;
+  color: var(--muted); font-size: 14px; background: #fafbfd; cursor: pointer;
+}
+.dropzone:hover { border-color: var(--blue); color: var(--blue); }
+.write-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+
+/* ============ Auth (로그인/회원가입) ============ */
+.auth-wrap { min-height: calc(100vh - 62px); display: grid; place-items: center; padding: 40px 20px; background: var(--bg); }
+.auth-card { width: 100%; max-width: 420px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 32px 30px; }
+.auth-brand { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--blue); margin-bottom: 6px; }
+.auth-brand .brand-name { font-size: 20px; }
+.auth-sub { text-align: center; font-size: 13px; color: var(--muted); margin: 0 0 22px; }
+.auth-tabs { display: flex; background: #eef0f6; border-radius: 10px; padding: 4px; margin-bottom: 22px; }
+.auth-tab { flex: 1; border: 0; background: none; height: 38px; border-radius: 7px; font-size: 14px; font-weight: 700; color: var(--muted); cursor: pointer; }
+.auth-tab.is-active { background: #fff; color: var(--ink); box-shadow: var(--shadow); }
+.auth-form { display: none; flex-direction: column; gap: 14px; }
+.auth-form.is-active { display: flex; }
+.auth-form label { font-size: 13px; font-weight: 700; color: #4a5263; margin-bottom: 6px; display: block; }
+.auth-form .field { height: 46px; }
+.auth-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+.checkline { display: flex; align-items: center; gap: 7px; color: #4a5263; cursor: pointer; }
+.checkline input { width: 15px; height: 15px; accent-color: var(--blue); }
+.auth-link { color: var(--blue); font-weight: 600; }
+.auth-form .btn-primary { height: 46px; font-size: 15px; margin-top: 4px; }
+.divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; margin: 6px 0; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.social { display: flex; flex-direction: column; gap: 8px; }
+.social-btn { height: 44px; border-radius: 10px; border: 1px solid var(--line); background: #fff; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.social-btn:hover { background: #f8f9fc; }
+.social-btn.kakao { background: #FEE500; border-color: #FEE500; }
+.field-error { font-size: 12px; color: #ef4444; margin-top: 5px; min-height: 16px; }
+.auth-foot { text-align: center; font-size: 12px; color: var(--muted); margin-top: 18px; }

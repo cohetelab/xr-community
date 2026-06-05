@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>글쓰기 · XR 커뮤니티</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="stylesheet" href="assets/pages.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="XR 커뮤니티 홈">
+        <svg class="brand-mark" width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="2" y="9" width="28" height="14" rx="7" fill="currentColor"/>
+          <circle cx="11" cy="16" r="3.4" fill="#fff"/><circle cx="21" cy="16" r="3.4" fill="#fff"/>
+        </svg>
+        <span class="brand-name">XR <b>커뮤니티</b></span>
+      </a>
+      <nav class="main-nav" aria-label="주요 메뉴">
+        <a href="index.html" class="nav-link">홈</a>
+        <a href="board.html" class="nav-link is-active">포럼</a>
+        <a href="board.html" class="nav-link">Q&amp;A</a>
+        <a href="#" class="nav-link">가이드</a>
+        <a href="#" class="nav-link">이벤트</a>
+        <a href="#" class="nav-link">공지</a>
+      </nav>
+      <div class="header-actions">
+        <a href="login.html" class="btn btn-ghost">로그인</a>
+        <a href="login.html" class="btn btn-primary">회원가입</a>
+        <button class="nav-toggle" aria-label="메뉴 열기" data-nav-toggle><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page" style="max-width:880px">
+    <nav class="breadcrumb" aria-label="현재 위치">
+      <a href="index.html">홈</a><span class="sep">›</span>
+      <a href="board.html">포럼</a><span class="sep">›</span>
+      <span>글쓰기</span>
+    </nav>
+
+    <form class="write-card" data-writeform>
+      <h1>✏️ 글쓰기</h1>
+
+      <div class="form-row">
+        <div class="field-group">
+          <select class="field" aria-label="게시판" data-board>
+            <option value="">게시판 선택</option>
+            <option>게임</option><option>앱</option><option>팁 &amp; 노하우</option>
+            <option>Q&amp;A</option><option>영상</option><option>개발</option>
+          </select>
+          <select class="field" aria-label="말머리" data-cat>
+            <option value="">말머리</option>
+            <option>후기</option><option>추천</option><option>모집</option><option>질문</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="title">제목</label>
+        <input id="title" class="field" type="text" placeholder="제목을 입력하세요" maxlength="100" data-title />
+        <div class="field-hint"><span class="char-count" data-titlecount>0 / 100</span></div>
+      </div>
+
+      <div class="form-row">
+        <label>내용</label>
+        <div class="editor-toolbar" aria-label="서식 도구">
+          <button type="button" class="tool" title="굵게"><span class="b">B</span></button>
+          <button type="button" class="tool" title="기울임"><span class="i">I</span></button>
+          <button type="button" class="tool" title="밑줄"><span class="u">U</span></button>
+          <button type="button" class="tool" title="목록">≣</button>
+          <button type="button" class="tool" title="인용">❝</button>
+          <button type="button" class="tool" title="링크">🔗</button>
+          <button type="button" class="tool" title="이미지">🖼️</button>
+          <button type="button" class="tool" title="코드">&lt;/&gt;</button>
+        </div>
+        <textarea class="area" placeholder="내용을 입력하세요. 따뜻한 커뮤니티를 함께 만들어요." data-content></textarea>
+      </div>
+
+      <div class="form-row">
+        <label>첨부</label>
+        <div class="dropzone" data-drop>📎 이미지나 파일을 끌어다 놓거나 클릭해서 첨부하세요 (데모)</div>
+      </div>
+
+      <div class="form-row">
+        <label for="tags">태그</label>
+        <input id="tags" class="field" type="text" placeholder="쉼표(,)로 구분 — 예: 신작게임, 후기, 설정팁" data-tags />
+      </div>
+
+      <div class="write-actions">
+        <a href="board.html" class="btn btn-outline">취소</a>
+        <button type="button" class="btn btn-ghost" data-draft>임시저장</button>
+        <button type="submit" class="btn btn-primary">등록</button>
+      </div>
+    </form>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-bottom container">© 2026 XR 커뮤니티 (Demo). All placeholder content.</div>
+  </footer>
+
+  <script src="assets/write.js" defer></script>
+</body>
+</html>
