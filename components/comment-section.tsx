@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { timeAgo } from "@/lib/posts";
@@ -31,6 +31,33 @@ export default function CommentSection({
   const [busy, setBusy] = useState(false);
   const [replyTo, setReplyTo] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
+
+  // 실시간 구독: 다른 사용자의 댓글/삭제를 즉시 반영
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`comments:${postId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "xrc_comments", filter: `post_id=eq.${postId}` },
+        async (payload) => {
+          const c = payload.new as CommentItem;
+          setComments((cs) => (cs.some((x) => x.id === c.id) ? cs : [...cs, { ...c, xrc_profiles: null }]));
+          const { data } = await supabase.from("xrc_profiles").select("username").eq("id", c.author_id).maybeSingle();
+          if (data) setComments((cs) => cs.map((x) => (x.id === c.id ? { ...x, xrc_profiles: { username: (data as any).username } } : x)));
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "xrc_comments", filter: `post_id=eq.${postId}` },
+        (payload) => {
+          const oldId = (payload.old as any).id;
+          setComments((cs) => cs.filter((x) => x.id !== oldId && x.parent_id !== oldId));
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [postId]);
 
   async function add(content: string, parentId: number | null) {
     if (!currentUser) { router.push("/login"); return null; }
