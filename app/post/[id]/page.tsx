@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getPost, getComments } from "@/lib/posts";
 import LikeButton from "@/components/like-button";
 import CommentSection from "@/components/comment-section";
+import PostActions from "@/components/post-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -54,17 +55,29 @@ export default async function PostPage({ params }: { params: { id: string } }) {
               <div className="article-byline">
                 <span className="avatar">{author[0]}</span>
                 <div>
-                  <div className="byline-name">{author}</div>
+                  <div className="byline-name">
+                    <Link href={`/u/${encodeURIComponent(author)}`}>{author}</Link>
+                  </div>
                   <div className="byline-meta">
                     <span>{created}</span>
                     <span>조회 {post.views}</span>
                     <span>댓글 {comments?.length ?? 0}</span>
                   </div>
                 </div>
+                {user?.id === post.author_id && <PostActions postId={post.id} />}
               </div>
             </div>
 
             <div className="article-body">{post.content}</div>
+
+            {post.image_urls && post.image_urls.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, margin: "20px 0" }}>
+                {post.image_urls.map((url) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={url} src={url} alt="" style={{ width: "100%", borderRadius: 12, border: "1px solid var(--line)" }} />
+                ))}
+              </div>
+            )}
 
             {post.tags && post.tags.length > 0 && (
               <div className="article-tags">

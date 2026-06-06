@@ -7,21 +7,60 @@ import type { Category } from "@/lib/types";
 
 const TAGS = ["후기", "추천", "모집", "질문"];
 
+type Initial = {
+  id: number;
+  category_id: number;
+  tag: string | null;
+  title: string;
+  content: string;
+  tags: string[] | null;
+  image_urls: string[] | null;
+};
+
 export default function WriteForm({
   categories,
   authorId,
+  initial,
 }: {
   categories: Category[];
   authorId: string;
+  initial?: Initial;
 }) {
   const router = useRouter();
-  const [categoryId, setCategoryId] = useState("");
-  const [tag, setTag] = useState("");
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [tagsInput, setTagsInput] = useState("");
+  const editing = !!initial;
+  const [categoryId, setCategoryId] = useState(initial ? String(initial.category_id) : "");
+  const [tag, setTag] = useState(initial?.tag || "");
+  const [title, setTitle] = useState(initial?.title || "");
+  const [content, setContent] = useState(initial?.content || "");
+  const [tagsInput, setTagsInput] = useState((initial?.tags || []).join(", "));
+  const [images, setImages] = useState<string[]>(initial?.image_urls || []);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  async function onPickFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploading(true);
+    setMsg("");
+    const supabase = createClient();
+    const urls: string[] = [];
+    for (const file of files) {
+      const ext = file.name.split(".").pop() || "bin";
+      const path = `${authorId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from("xrc-media").upload(path, file, { upsert: false });
+      if (error) { setMsg("이미지 업로드 실패: " + error.message); continue; }
+      const { data } = supabase.storage.from("xrc-media").getPublicUrl(path);
+      urls.push(data.publicUrl);
+    }
+    setImages((prev) => [...prev, ...urls]);
+    setUploading(false);
+    e.target.value = "";
+  }
+
+  function removeImage(url: string) {
+    setImages((prev) => prev.filter((u) => u !== url));
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,32 +72,37 @@ export default function WriteForm({
     setBusy(true);
     const supabase = createClient();
     const tags = tagsInput.split(",").map((t) => t.trim().replace(/^#/, "")).filter(Boolean);
+    const payload = {
+      title: title.trim(),
+      content: content.trim(),
+      category_id: Number(categoryId),
+      tag: tag || null,
+      tags: tags.length ? tags : null,
+      image_urls: images.length ? images : null,
+    };
 
-    const { data, error } = await supabase
-      .from("xrc_posts")
-      .insert({
-        title: title.trim(),
-        content: content.trim(),
-        category_id: Number(categoryId),
-        author_id: authorId,
-        tag: tag || null,
-        tags: tags.length ? tags : null,
-      })
-      .select("id")
-      .single();
-
-    if (error || !data) {
-      setMsg("등록 실패: " + (error?.message || "알 수 없는 오류"));
-      setBusy(false);
-      return;
+    if (editing) {
+      const { error } = await supabase
+        .from("xrc_posts")
+        .update({ ...payload, updated_at: new Date().toISOString() })
+        .eq("id", initial!.id);
+      if (error) { setMsg("수정 실패: " + error.message); setBusy(false); return; }
+      router.push(`/post/${initial!.id}`);
+    } else {
+      const { data, error } = await supabase
+        .from("xrc_posts")
+        .insert({ ...payload, author_id: authorId })
+        .select("id")
+        .single();
+      if (error || !data) { setMsg("등록 실패: " + (error?.message || "오류")); setBusy(false); return; }
+      router.push(`/post/${data.id}`);
     }
-    router.push(`/post/${data.id}`);
     router.refresh();
   }
 
   return (
     <form className="write-card" onSubmit={submit}>
-      <h1>✏️ 글쓰기</h1>
+      <h1>{editing ? "✏️ 글 수정" : "✏️ 글쓰기"}</h1>
 
       <div className="form-row">
         <div className="field-group">
@@ -81,8 +125,28 @@ export default function WriteForm({
 
       <div className="form-row">
         <label htmlFor="content">내용</label>
-        <textarea id="content" className="area" placeholder="내용을 입력하세요. 따뜻한 커뮤니티를 함께 만들어요."
+        <textarea id="content" className="area" placeholder="내용을 입력하세요."
           value={content} onChange={(e) => setContent(e.target.value)} />
+      </div>
+
+      <div className="form-row">
+        <label>이미지 첨부</label>
+        <label className="dropzone" style={{ display: "block", cursor: uploading ? "wait" : "pointer" }}>
+          {uploading ? "업로드 중…" : "📷 클릭해서 이미지 선택 (여러 장 가능)"}
+          <input type="file" accept="image/*" multiple onChange={onPickFiles} hidden disabled={uploading} />
+        </label>
+        {images.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
+            {images.map((url) => (
+              <div key={url} style={{ position: "relative" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt="" style={{ width: 92, height: 92, objectFit: "cover", borderRadius: 8, border: "1px solid var(--line)" }} />
+                <button type="button" onClick={() => removeImage(url)}
+                  style={{ position: "absolute", top: -8, right: -8, width: 22, height: 22, borderRadius: "50%", border: 0, background: "#ef4444", color: "#fff", cursor: "pointer", fontSize: 13 }}>×</button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="form-row">
@@ -95,8 +159,10 @@ export default function WriteForm({
       {msg && <p className="form-msg error">{msg}</p>}
 
       <div className="write-actions">
-        <button type="button" className="btn btn-outline" onClick={() => router.push("/board")}>취소</button>
-        <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? "등록 중…" : "등록"}</button>
+        <button type="button" className="btn btn-outline" onClick={() => router.back()}>취소</button>
+        <button type="submit" className="btn btn-primary" disabled={busy || uploading}>
+          {busy ? "저장 중…" : editing ? "수정 완료" : "등록"}
+        </button>
       </div>
     </form>
   );

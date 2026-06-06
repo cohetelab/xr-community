@@ -14,6 +14,7 @@ export type PostRow = {
   author_id: string;
   tag: string | null;
   tags: string[] | null;
+  image_urls: string[] | null;
   views: number;
   created_at: string;
   xrc_categories: { id: number; name: string; slug: string; icon: string | null; color: string | null } | null;
@@ -21,6 +22,43 @@ export type PostRow = {
   comment_count: number;
   like_count: number;
 };
+
+/* RPC(xrc_list_posts)의 평탄한 행 → PostRow 형태로 매핑 */
+function fromRpc(r: any): PostRow {
+  return {
+    id: r.id, title: r.title, content: r.content, category_id: r.category_id,
+    author_id: r.author_id, tag: r.tag, tags: r.tags, image_urls: r.image_urls,
+    views: r.views, created_at: r.created_at,
+    xrc_categories: r.cat_name
+      ? { id: r.category_id, name: r.cat_name, slug: r.cat_slug, icon: r.cat_icon, color: r.cat_color }
+      : null,
+    xrc_profiles: r.author_name ? { id: r.author_id, username: r.author_name, avatar_url: r.author_avatar } : null,
+    comment_count: Number(r.comment_count) || 0,
+    like_count: Number(r.like_count) || 0,
+  };
+}
+
+export type ListOpts = { categorySlug?: string; search?: string; sort?: string; limit?: number; offset?: number };
+
+/* 목록 + 총개수 (검색/정렬/페이지네이션) */
+export async function listPosts(
+  supabase: SupabaseClient,
+  opts: ListOpts = {}
+): Promise<{ posts: PostRow[]; total: number }> {
+  const params = {
+    p_category: opts.categorySlug ?? null,
+    p_search: opts.search ?? null,
+    p_sort: opts.sort ?? "latest",
+    p_limit: opts.limit ?? 20,
+    p_offset: opts.offset ?? 0,
+  };
+  const [{ data, error }, { data: total }] = await Promise.all([
+    supabase.rpc("xrc_list_posts", params),
+    supabase.rpc("xrc_count_posts", { p_category: params.p_category, p_search: params.p_search }),
+  ]);
+  if (error || !data) return { posts: [], total: 0 };
+  return { posts: (data as any[]).map(fromRpc), total: Number(total) || 0 };
+}
 
 function normalize(row: any, profiles: Record<string, ProfileLite>): PostRow {
   return {
@@ -65,6 +103,18 @@ export async function getPosts(
   return data.map((r) => normalize(r, profiles));
 }
 
+export async function getPostsByAuthor(supabase: SupabaseClient, authorId: string, limit = 30): Promise<PostRow[]> {
+  const { data, error } = await supabase
+    .from("xrc_posts")
+    .select(SELECT)
+    .eq("author_id", authorId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error || !data) return [];
+  const profiles = await fetchProfiles(supabase, data.map((r: any) => r.author_id));
+  return data.map((r) => normalize(r, profiles));
+}
+
 export async function getPost(supabase: SupabaseClient, id: number): Promise<PostRow | null> {
   const { data, error } = await supabase.from("xrc_posts").select(SELECT).eq("id", id).maybeSingle();
   if (error || !data) return null;
@@ -76,6 +126,7 @@ export type CommentRow = {
   id: number;
   content: string;
   author_id: string;
+  parent_id: number | null;
   created_at: string;
   xrc_profiles?: { username: string } | null;
 };
@@ -83,7 +134,7 @@ export type CommentRow = {
 export async function getComments(supabase: SupabaseClient, postId: number): Promise<CommentRow[]> {
   const { data, error } = await supabase
     .from("xrc_comments")
-    .select("id, content, author_id, created_at")
+    .select("id, content, author_id, parent_id, created_at")
     .eq("post_id", postId)
     .order("created_at", { ascending: true });
   if (error || !data) return [];
