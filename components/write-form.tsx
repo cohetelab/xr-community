@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Category } from "@/lib/types";
@@ -37,6 +37,32 @@ export default function WriteForm({
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const taRef = useRef<HTMLTextAreaElement>(null);
+
+  // 선택 영역을 마크다운 기호로 감싸기
+  function surround(before: string, after = before, placeholder = "텍스트") {
+    const ta = taRef.current;
+    if (!ta) return;
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    const sel = content.slice(s, e) || placeholder;
+    const next = content.slice(0, s) + before + sel + after + content.slice(e);
+    setContent(next);
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.selectionStart = s + before.length;
+      ta.selectionEnd = s + before.length + sel.length;
+    });
+  }
+  // 현재 줄 맨 앞에 접두사 추가 (제목/목록/인용)
+  function linePrefix(prefix: string) {
+    const ta = taRef.current;
+    if (!ta) return;
+    const s = ta.selectionStart;
+    const lineStart = content.lastIndexOf("\n", s - 1) + 1;
+    const next = content.slice(0, lineStart) + prefix + content.slice(lineStart);
+    setContent(next);
+    requestAnimationFrame(() => { ta.focus(); ta.selectionStart = ta.selectionEnd = s + prefix.length; });
+  }
 
   async function onPickFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
@@ -124,8 +150,18 @@ export default function WriteForm({
       </div>
 
       <div className="form-row">
-        <label htmlFor="content">내용</label>
-        <textarea id="content" className="area" placeholder="내용을 입력하세요."
+        <label htmlFor="content">내용 <span style={{ color: "var(--muted)", fontWeight: 400 }}>· 마크다운 지원</span></label>
+        <div className="md-toolbar">
+          <button type="button" className="md-btn" title="굵게" onClick={() => surround("**")}><b>B</b></button>
+          <button type="button" className="md-btn" title="기울임" onClick={() => surround("*")}><i>I</i></button>
+          <button type="button" className="md-btn" title="취소선" onClick={() => surround("~~")}><s>S</s></button>
+          <button type="button" className="md-btn" title="제목" onClick={() => linePrefix("## ")}>H</button>
+          <button type="button" className="md-btn" title="목록" onClick={() => linePrefix("- ")}>≣</button>
+          <button type="button" className="md-btn" title="인용" onClick={() => linePrefix("> ")}>❝</button>
+          <button type="button" className="md-btn" title="링크" onClick={() => surround("[", "](https://)", "링크텍스트")}>🔗</button>
+          <button type="button" className="md-btn" title="인라인 코드" onClick={() => surround("`")}>&lt;/&gt;</button>
+        </div>
+        <textarea id="content" ref={taRef} className="area" placeholder="내용을 입력하세요. (마크다운: **굵게**, ## 제목, - 목록, > 인용)"
           value={content} onChange={(e) => setContent(e.target.value)} />
       </div>
 

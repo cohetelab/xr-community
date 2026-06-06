@@ -7,6 +7,7 @@ import CommentSection from "@/components/comment-section";
 import PostActions from "@/components/post-actions";
 import ReportButton from "@/components/report-button";
 import BookmarkButton from "@/components/bookmark-button";
+import MarkdownContent from "@/components/markdown-content";
 
 export const dynamic = "force-dynamic";
 
@@ -73,7 +74,7 @@ export default async function PostPage({ params }: { params: { id: string } }) {
               </div>
             </div>
 
-            <div className="article-body">{post.content}</div>
+            <MarkdownContent>{post.content}</MarkdownContent>
 
             {post.image_urls && post.image_urls.length > 0 && (
               <div style={{ display: "flex", flexDirection: "column", gap: 12, margin: "20px 0" }}>
