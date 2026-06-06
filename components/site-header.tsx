@@ -9,15 +9,17 @@ export default async function SiteHeader() {
   const { data: { user } } = await supabase.auth.getUser();
 
   let username = "";
+  let avatar: string | null = null;
   let unread = 0;
   let admin = false;
   if (user) {
     const [{ data: profile }, count] = await Promise.all([
-      supabase.from("xrc_profiles").select("username, is_admin").eq("id", user.id).maybeSingle(),
+      supabase.from("xrc_profiles").select("username, is_admin, avatar_url").eq("id", user.id).maybeSingle(),
       getUnreadCount(supabase, user.id),
     ]);
     username = profile?.username || user.email?.split("@")[0] || "회원";
     admin = !!(profile as any)?.is_admin;
+    avatar = (profile as any)?.avatar_url || null;
     unread = count;
   }
 
@@ -43,7 +45,13 @@ export default async function SiteHeader() {
               <Link href="/notifications" className="bell" aria-label="알림">
                 🔔{unread > 0 && <span className="bell-badge">{unread > 99 ? "99+" : unread}</span>}
               </Link>
-              <Link href={`/u/${encodeURIComponent(username)}`} className="user-chip"><span className="avatar">{username[0]}</span>{username}</Link>
+              <Link href={`/u/${encodeURIComponent(username)}`} className="user-chip">
+                {avatar
+                  ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={avatar} alt="" className="avatar" style={{ objectFit: "cover" }} />
+                  : <span className="avatar">{username[0]}</span>}
+                {username}
+              </Link>
+              <Link href="/settings" className="bell" title="설정">⚙️</Link>
               {admin && <Link href="/admin" className="btn btn-ghost" title="관리자">🛡️</Link>}
               <Link href="/write" className="btn btn-primary">✏️ 글쓰기</Link>
               <SignOutButton />

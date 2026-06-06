@@ -31,7 +31,9 @@ export default async function ProfilePage({ params }: { params: { username: stri
       <div className="page-layout">
         <section>
           <div className="card" style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 18 }}>
-            <span className="avatar" style={{ width: 64, height: 64, fontSize: 28 }}>{profile.username[0]}</span>
+            {profile.avatar_url
+              ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={profile.avatar_url} alt="" style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", border: "1px solid var(--line)" }} />
+              : <span className="avatar" style={{ width: 64, height: 64, fontSize: 28 }}>{profile.username[0]}</span>}
             <div>
               <h1 style={{ margin: "0 0 4px", fontSize: 22 }}>{profile.username}</h1>
               <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>가입일 {joined}</p>
