@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getUnreadCount } from "@/lib/notifications";
 import BrandMark from "./brand-mark";
 import SignOutButton from "./sign-out-button";
 
@@ -8,13 +9,14 @@ export default async function SiteHeader() {
   const { data: { user } } = await supabase.auth.getUser();
 
   let username = "";
+  let unread = 0;
   if (user) {
-    const { data: profile } = await supabase
-      .from("xrc_profiles")
-      .select("username")
-      .eq("id", user.id)
-      .maybeSingle();
+    const [{ data: profile }, count] = await Promise.all([
+      supabase.from("xrc_profiles").select("username").eq("id", user.id).maybeSingle(),
+      getUnreadCount(supabase, user.id),
+    ]);
     username = profile?.username || user.email?.split("@")[0] || "회원";
+    unread = count;
   }
 
   return (
@@ -35,7 +37,10 @@ export default async function SiteHeader() {
         <div className="header-actions">
           {user ? (
             <>
-              <span className="user-chip"><span className="avatar">{username[0]}</span>{username}</span>
+              <Link href="/notifications" className="bell" aria-label="알림">
+                🔔{unread > 0 && <span className="bell-badge">{unread > 99 ? "99+" : unread}</span>}
+              </Link>
+              <Link href={`/u/${encodeURIComponent(username)}`} className="user-chip"><span className="avatar">{username[0]}</span>{username}</Link>
               <Link href="/write" className="btn btn-primary">✏️ 글쓰기</Link>
               <SignOutButton />
             </>
