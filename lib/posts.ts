@@ -85,6 +85,7 @@ export async function getPosts(
   let query = supabase
     .from("xrc_posts")
     .select(SELECT)
+    .eq("is_hidden", false)
     .order("created_at", { ascending: false })
     .limit(opts.limit ?? 20);
 
@@ -108,6 +109,7 @@ export async function getPostsByAuthor(supabase: SupabaseClient, authorId: strin
     .from("xrc_posts")
     .select(SELECT)
     .eq("author_id", authorId)
+    .eq("is_hidden", false)
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error || !data) return [];
@@ -116,7 +118,7 @@ export async function getPostsByAuthor(supabase: SupabaseClient, authorId: strin
 }
 
 export async function getPost(supabase: SupabaseClient, id: number): Promise<PostRow | null> {
-  const { data, error } = await supabase.from("xrc_posts").select(SELECT).eq("id", id).maybeSingle();
+  const { data, error } = await supabase.from("xrc_posts").select(SELECT).eq("id", id).eq("is_hidden", false).maybeSingle();
   if (error || !data) return null;
   const profiles = await fetchProfiles(supabase, [(data as any).author_id]);
   return normalize(data, profiles);
@@ -136,6 +138,7 @@ export async function getComments(supabase: SupabaseClient, postId: number): Pro
     .from("xrc_comments")
     .select("id, content, author_id, parent_id, created_at")
     .eq("post_id", postId)
+    .eq("is_hidden", false)
     .order("created_at", { ascending: true });
   if (error || !data) return [];
   const profiles = await fetchProfiles(supabase, data.map((r: any) => r.author_id));

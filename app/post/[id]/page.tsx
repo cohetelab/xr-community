@@ -5,6 +5,7 @@ import { getPost, getComments } from "@/lib/posts";
 import LikeButton from "@/components/like-button";
 import CommentSection from "@/components/comment-section";
 import PostActions from "@/components/post-actions";
+import ReportButton from "@/components/report-button";
 
 export const dynamic = "force-dynamic";
 
@@ -92,6 +93,9 @@ export default async function PostPage({ params }: { params: { id: string } }) {
                 initiallyLiked={!!likedRes.data}
                 isLoggedIn={!!user}
               />
+              {user?.id !== post.author_id && (
+                <ReportButton targetType="post" postId={post.id} isLoggedIn={!!user} />
+              )}
             </div>
           </article>
 

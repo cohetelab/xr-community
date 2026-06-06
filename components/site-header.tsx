@@ -10,12 +10,14 @@ export default async function SiteHeader() {
 
   let username = "";
   let unread = 0;
+  let admin = false;
   if (user) {
     const [{ data: profile }, count] = await Promise.all([
-      supabase.from("xrc_profiles").select("username").eq("id", user.id).maybeSingle(),
+      supabase.from("xrc_profiles").select("username, is_admin").eq("id", user.id).maybeSingle(),
       getUnreadCount(supabase, user.id),
     ]);
     username = profile?.username || user.email?.split("@")[0] || "회원";
+    admin = !!(profile as any)?.is_admin;
     unread = count;
   }
 
@@ -41,6 +43,7 @@ export default async function SiteHeader() {
                 🔔{unread > 0 && <span className="bell-badge">{unread > 99 ? "99+" : unread}</span>}
               </Link>
               <Link href={`/u/${encodeURIComponent(username)}`} className="user-chip"><span className="avatar">{username[0]}</span>{username}</Link>
+              {admin && <Link href="/admin" className="btn btn-ghost" title="관리자">🛡️</Link>}
               <Link href="/write" className="btn btn-primary">✏️ 글쓰기</Link>
               <SignOutButton />
             </>
