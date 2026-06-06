@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getPost } from "@/lib/posts";
+import { getPost, getComments } from "@/lib/posts";
 import LikeButton from "@/components/like-button";
 import CommentSection from "@/components/comment-section";
 
@@ -20,12 +20,8 @@ export default async function PostPage({ params }: { params: { id: string } }) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const [{ data: comments }, likedRes, profileRes] = await Promise.all([
-    supabase
-      .from("xrc_comments")
-      .select("id, content, author_id, created_at, xrc_profiles(username)")
-      .eq("post_id", id)
-      .order("created_at", { ascending: true }),
+  const [comments, likedRes, profileRes] = await Promise.all([
+    getComments(supabase, id),
     user
       ? supabase.from("xrc_post_likes").select("post_id").eq("post_id", id).eq("user_id", user.id).maybeSingle()
       : Promise.resolve({ data: null }),
