@@ -6,6 +6,7 @@ import LikeButton from "@/components/like-button";
 import CommentSection from "@/components/comment-section";
 import PostActions from "@/components/post-actions";
 import ReportButton from "@/components/report-button";
+import BookmarkButton from "@/components/bookmark-button";
 
 export const dynamic = "force-dynamic";
 
@@ -22,13 +23,16 @@ export default async function PostPage({ params }: { params: { id: string } }) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const [comments, likedRes, profileRes] = await Promise.all([
+  const [comments, likedRes, profileRes, bmRes] = await Promise.all([
     getComments(supabase, id),
     user
       ? supabase.from("xrc_post_likes").select("post_id").eq("post_id", id).eq("user_id", user.id).maybeSingle()
       : Promise.resolve({ data: null }),
     user
       ? supabase.from("xrc_profiles").select("username").eq("id", user.id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    user
+      ? supabase.from("xrc_bookmarks").select("post_id").eq("post_id", id).eq("user_id", user.id).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
 
@@ -93,6 +97,7 @@ export default async function PostPage({ params }: { params: { id: string } }) {
                 initiallyLiked={!!likedRes.data}
                 isLoggedIn={!!user}
               />
+              <BookmarkButton postId={post.id} initiallySaved={!!bmRes.data} isLoggedIn={!!user} />
               {user?.id !== post.author_id && (
                 <ReportButton targetType="post" postId={post.id} isLoggedIn={!!user} />
               )}

@@ -117,6 +117,24 @@ export async function getPostsByAuthor(supabase: SupabaseClient, authorId: strin
   return data.map((r) => normalize(r, profiles));
 }
 
+export async function getBookmarkedPosts(supabase: SupabaseClient, userId: string): Promise<PostRow[]> {
+  const { data: bms } = await supabase
+    .from("xrc_bookmarks")
+    .select("post_id, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(100);
+  const ids = (bms || []).map((b: any) => b.post_id);
+  if (!ids.length) return [];
+
+  const { data } = await supabase.from("xrc_posts").select(SELECT).in("id", ids).eq("is_hidden", false);
+  if (!data) return [];
+  const profiles = await fetchProfiles(supabase, data.map((r: any) => r.author_id));
+  const map: Record<number, PostRow> = {};
+  data.forEach((r) => { map[(r as any).id] = normalize(r, profiles); });
+  return ids.map((id) => map[id]).filter(Boolean); // 북마크 순서 유지
+}
+
 export async function getPost(supabase: SupabaseClient, id: number): Promise<PostRow | null> {
   const { data, error } = await supabase.from("xrc_posts").select(SELECT).eq("id", id).eq("is_hidden", false).maybeSingle();
   if (error || !data) return null;

@@ -39,6 +39,7 @@ export default async function SiteHeader() {
         <div className="header-actions">
           {user ? (
             <>
+              <Link href="/bookmarks" className="bell" aria-label="저장한 글" title="저장한 글">🔖</Link>
               <Link href="/notifications" className="bell" aria-label="알림">
                 🔔{unread > 0 && <span className="bell-badge">{unread > 99 ? "99+" : unread}</span>}
               </Link>
