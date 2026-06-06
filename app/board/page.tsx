@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { listPosts } from "@/lib/posts";
+import InfiniteThreads from "@/components/infinite-threads";
 import type { Category } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -85,36 +86,18 @@ export default async function BoardPage({
           </div>
 
           {posts.length ? (
-            <ul className="thread-list">
-              {posts.map((p, idx) => (
-                <li className="thread" key={p.id}>
-                  <div className="th-no">{total - (page - 1) * PAGE_SIZE - idx}</div>
-                  <div className="th-main">
-                    <span className="th-cat">{p.xrc_categories?.name}</span>
-                    <Link href={`/post/${p.id}`} className="th-title">{p.title}</Link>
-                    {p.image_urls && p.image_urls.length > 0 && <span className="th-cmt" style={{ color: "var(--blue)" }}>📷</span>}
-                    {p.comment_count > 0 && <span className="th-cmt">[{p.comment_count}]</span>}
-                  </div>
-                  <div className="th-author">
-                    <span className="avatar">{(p.xrc_profiles?.username || "익")[0]}</span>{p.xrc_profiles?.username || "익명"}
-                  </div>
-                  <div className="th-stats">♥ <b>{p.like_count}</b> · 조회 {p.views}</div>
-                </li>
-              ))}
-            </ul>
+            <InfiniteThreads
+              initial={posts}
+              total={total}
+              categorySlug={slug}
+              search={search}
+              sort={sort}
+              pageSize={PAGE_SIZE}
+            />
           ) : (
             <div className="empty">
               {search ? "검색 결과가 없어요." : "이 게시판에 아직 글이 없어요."} <Link href="/write" style={{ color: "var(--blue)", fontWeight: 700 }}>글 작성하기</Link>
             </div>
-          )}
-
-          {totalPages > 1 && (
-            <nav className="board-toolbar" style={{ justifyContent: "center", gap: 6, marginTop: 16 }} aria-label="페이지">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).slice(0, 10).map((n) => (
-                <Link key={n} href={buildQuery({ ...keep, page: n > 1 ? String(n) : undefined })}
-                  className={`chip ${n === page ? "is-active" : ""}`}>{n}</Link>
-              ))}
-            </nav>
           )}
 
           <div className="board-bottom">

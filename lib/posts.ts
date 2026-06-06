@@ -23,8 +23,8 @@ export type PostRow = {
   like_count: number;
 };
 
-/* RPC(xrc_list_posts)의 평탄한 행 → PostRow 형태로 매핑 */
-function fromRpc(r: any): PostRow {
+/* RPC(xrc_list_posts)의 평탄한 행 → PostRow 형태로 매핑 (클라이언트 무한스크롤에서도 사용) */
+export function fromRpc(r: any): PostRow {
   return {
     id: r.id, title: r.title, content: r.content, category_id: r.category_id,
     author_id: r.author_id, tag: r.tag, tags: r.tags, image_urls: r.image_urls,
